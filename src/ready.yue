@@ -56,14 +56,17 @@ ModUtil.Path.Wrap 'IsBonusUnusedWeapon', (base, source, args) ->
   true
 
 ModUtil.Path.Wrap 'StartNewRun', (base, source, args) ->
-  $debug_log 'StartNewRun called'
+  $debug_log 'StartNewRun: enter'
   r = base source, args -- yuecheck:ignore
 
   unless Incantations.isIncantationEnabled incant_id
+    $debug_log 'StartNewRun: incantation not enabled'
     return r
 
+  $debug_log 'StartNewRun: incantation enabled'
   trait = GameState.WorldUpgrades.WorldUpgradesUnusedWeaponBonusT2 and 'UnusedWeaponBonusTraitT2' or 'UnusedWeaponBonusTrait'
+  $debug_log 'StartNewRun: has trait ' .. trait .. '? ' .. tostring(HeroHasTrait(trait))
   unless HeroHasTrait trait
-    $debug_log 'Adding gt-severe-thirst trait'
-    AddTrait trait
+    AddTrait CurrentRun.Hero, trait
+    $debug_log 'StartNewRun: added trait'
   r
