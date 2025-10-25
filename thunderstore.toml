@@ -1,0 +1,39 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "churrnobyl"
+name = "ThirstOfAWitch"
+versionNumber = "0.0.1"
+description = "Hades II mod that provides an incantation to enable grave thirst to every weapon, every night."
+websiteUrl = "https://github.com/churrnobyl/thirst-of-a-witch"
+containsNsfwContent = false
+
+[package.dependencies]
+Hell2Modding-Hell2Modding = "1.0.70"
+LuaENVY-ENVY = "1.2.0"
+SGG_Modding-Chalk = "2.1.1"
+SGG_Modding-ReLoad = "1.0.2"
+SGG_Modding-SJSON = "1.0.0"
+SGG_Modding-ModUtil = "4.0.1"
+BlueRaja-IncantationsAPI = "1.0.0"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./build"
+
+[[build.copy]]
+source = "./LICENSE"
+target = "./LICENSE"
+
+[[build.copy]]
+source = "./dst"
+target = "./plugins"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = [ "hades-ii", ]
+
+[publish.categories]
+hades-ii = [ "mods", ]

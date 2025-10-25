@@ -1,0 +1,40 @@
+import 'macros' as { $ }
+import game, mods from rom
+
+-- scaffolding
+mods['LuaENVY-ENVY'].auto!
+import_as_fallback game
+
+lib =
+  modutil: mods['SGG_Modding-ModUtil']
+  reload:  mods['SGG_Modding-ReLoad']
+  sjson:   mods['SGG_Modding-SJSON']
+  chalk:   mods['SGG_Modding-Chalk']
+
+config = lib.chalk.auto 'config.lua'
+public.config = config
+
+loader = lib.reload.auto_single!
+_G.Incantations = mods['BlueRaja-IncantationsAPI']
+-- /scaffolding
+
+on_ready = ->
+  unless config.enabled
+    return
+
+  mod = lib.modutil.mod.Mod.Register(_PLUGIN.guid)
+  $debug_log 'enabled'
+  $import 'ready.lua'
+  nil
+
+on_reload = ->
+  unless config.enabled
+    return
+
+  $debug_log 'reloading'
+  $import 'reload.lua'
+  nil
+
+lib.modutil.once_loaded.game ->
+  loader.load on_ready, on_reload
+  nil

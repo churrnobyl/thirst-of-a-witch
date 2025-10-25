@@ -1,0 +1,15 @@
+export macro debug_log = (msg) ->
+  if os.getenv'BUILD_MODE' != 'debug'
+    return { type: 'lua', code: 'assert(true)' }
+
+  {
+    type: 'lua'
+    code: 'print("\x1b[32mthirsty: " .. tostring(' .. msg .. ') .. "\x1b[0m")'
+  }
+
+-- LuaENVY defines an `import` function globally
+export macro import = (file) ->
+  {
+    type: 'lua'
+    code: "import(#{ file })"
+  }

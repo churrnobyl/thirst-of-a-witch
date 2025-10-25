@@ -1,0 +1,69 @@
+import 'macros' as { $ }
+
+incant_id = 'gt-severe-thirst'
+
+langmap = (str) ->
+  ks = ['en', 'de', 'el', 'es', 'fr', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'tr', 'uk', 'zh-CN', 'zh-TW']
+  m = {}
+  m[k] = str for k in *ks
+  m
+
+$debug_log 'adding incantation'
+Incantations.addIncantation
+  Id: incant_id
+  Name: langmap 'Thirst of a Witch'
+  Description: langmap '{#Emph}Enchant each of the Nocturnal Arms{#Prev}, causing them to suffer from Grave Thirst each night.'
+  FlavorText: langmap 'Try as you might, you cannot quench their thirst.'
+  WorldUpgradeData:
+    -- once you have completed the requirements, no reason not to show it
+    AlwaysRevealImmediately: true
+    Icon: "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_bones"
+    Cost:
+      OreFSilver: 10
+      MixerIBoss: 1
+      MixerQBoss: 1
+    GameStateRequirements:
+      * {
+        Path: { 'GameState', 'EnemyKills', 'Chronos' }
+        Comparison: '>='
+        Value: 3
+      }
+      * {
+        Path: { 'GameState', 'EnemyKills', 'TyphonHead' }
+        Comparison: '>='
+        Value: 2
+      }
+    PreRevealVoiceLines:
+      PreLineWait: 0.25
+      ObjectType: 'NPC_Hecate_01'
+      * { Cue: '/VO/Hecate_0179', Text: 'Now say the words.', PreLineAnim: 'Hecate_Hub_Affirm' }
+    IncantationVoiceLines:
+      * {
+        PreLineWait: 0.3
+        { Cue: '/VO/Melinoe_0531', Text: "{#Emph}Fire and Earth, between heaven and hell, \n {#Emph}Make manifest my thoughts; complete my spell." }
+      }
+    RevealReactionVoiceLines:
+      * { GlobalVoiceLines: 'CauldronReactionFollowUpVoiceLines' }
+$debug_log 'incantation added'
+
+-- IsBonusUnusedWeapon checks if you're using a weapon with thirst enabled.
+ModUtil.Path.Wrap 'IsBonusUnusedWeapon', (base, source, args) ->
+  unless Incantations.isIncantationEnabled incant_id
+    $debug_log 'IsBonusUnusedWeapon called, but incantation not enabled'
+    return base source, args -- yuecheck:ignore
+
+  $debug_log 'IsBonusUnusedWeapon called, gt-severe-thirst enabled, ret true'
+  true
+
+ModUtil.Path.Wrap 'StartNewRun', (base, source, args) ->
+  $debug_log 'StartNewRun called'
+  r = base source, args -- yuecheck:ignore
+
+  unless Incantations.isIncantationEnabled incant_id
+    return r
+
+  trait = GameState.WorldUpgrades.WorldUpgradesUnusedWeaponBonusT2 and 'UnusedWeaponBonusTraitT2' or 'UnusedWeaponBonusTrait'
+  unless HeroHasTrait trait
+    $debug_log 'Adding gt-severe-thirst trait'
+    AddTrait trait
+  r

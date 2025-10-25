@@ -1,0 +1,9 @@
+*.yue linguist-language=moonscript
+.yuecheck linguist-language=moonscript
+*.yue text eol=lf
+.yuecheck text eol=lf
+
+.gitattributes export-ignore
+.github export-ignore
+.gitignore export-ignore
+.gitmodules export-ignore
