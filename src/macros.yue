@@ -6,10 +6,3 @@ export macro debug_log = (msg) ->
     type: 'lua'
     code: 'print("\x1b[32mthirsty: " .. tostring(' .. msg .. ') .. "\x1b[0m")'
   }
-
--- LuaENVY defines an `import` function globally
-export macro import = (file) ->
-  {
-    type: 'lua'
-    code: "import(#{ file })"
-  }

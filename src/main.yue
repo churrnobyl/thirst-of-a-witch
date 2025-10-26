@@ -2,20 +2,19 @@ import 'macros' as { $ }
 import game, mods from rom
 
 -- scaffolding
-mods['LuaENVY-ENVY'].auto!
-import_as_fallback game
+_ENV, envy = mods['LuaENVY-ENVY'].setup _ENV
+envy.import_as_fallback game
 
 lib =
   modutil: mods['SGG_Modding-ModUtil']
   reload:  mods['SGG_Modding-ReLoad']
-  sjson:   mods['SGG_Modding-SJSON']
   chalk:   mods['SGG_Modding-Chalk']
+  incantations: mods['BlueRaja-IncantationsAPI']
 
-config = lib.chalk.auto 'config.lua'
-public.config = config
+envy.private.lib = lib
+envy.public.config = lib.chalk.auto 'config.lua'
 
 loader = lib.reload.auto_single!
-_G.Incantations = mods['BlueRaja-IncantationsAPI']
 -- /scaffolding
 
 on_ready = ->
@@ -24,7 +23,7 @@ on_ready = ->
 
   mod = lib.modutil.mod.Mod.Register(_PLUGIN.guid)
   $debug_log 'enabled'
-  $import 'ready.lua'
+  envy.import 'ready.lua'
   nil
 
 on_reload = ->
@@ -32,7 +31,7 @@ on_reload = ->
     return
 
   $debug_log 'reloading'
-  $import 'reload.lua'
+  envy.import 'reload.lua'
   nil
 
 lib.modutil.once_loaded.game ->

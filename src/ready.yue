@@ -1,4 +1,6 @@
 import 'macros' as { $ }
+import lib.modutil.mod as mod
+import lib.incantations as incantations
 
 incant_id = 'gt-severe-thirst'
 
@@ -9,7 +11,7 @@ langmap = (str) ->
   m
 
 $debug_log 'adding incantation'
-Incantations.addIncantation
+incantations.addIncantation
   Id: incant_id
   Name: langmap 'Thirst of a Witch'
   Description: langmap '{#Emph}Enchant each of the Nocturnal Arms{#Prev}, causing them to suffer from Grave Thirst each night.'
@@ -47,19 +49,19 @@ Incantations.addIncantation
 $debug_log 'incantation added'
 
 -- IsBonusUnusedWeapon checks if you're using a weapon with thirst enabled.
-ModUtil.Path.Wrap 'IsBonusUnusedWeapon', (base, source, args) ->
-  unless Incantations.isIncantationEnabled incant_id
+mod.Path.Wrap 'IsBonusUnusedWeapon', (base, source, args) ->
+  unless incantations.isIncantationEnabled incant_id
     $debug_log 'IsBonusUnusedWeapon called, but incantation not enabled'
     return base source, args -- yuecheck:ignore
 
   $debug_log 'IsBonusUnusedWeapon called, gt-severe-thirst enabled, ret true'
   true
 
-ModUtil.Path.Wrap 'StartNewRun', (base, source, args) ->
+mod.Path.Wrap 'StartNewRun', (base, source, args) ->
   $debug_log 'StartNewRun: enter'
   r = base source, args -- yuecheck:ignore
 
-  unless Incantations.isIncantationEnabled incant_id
+  unless incantations.isIncantationEnabled incant_id
     $debug_log 'StartNewRun: incantation not enabled'
     return r
 
