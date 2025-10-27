@@ -115,7 +115,7 @@ mod.Path.Wrap 'StartNewRun', (fn, source, args) ->
   got = false
   for k, _ in pairs CurrentRun.Hero.Weapons
     got = k in _data.weapons
-    $debug_log 'found ' .. k .. ' in thirsty? ' .. tostring(got)
+    $debug_log 'StartNewRun: player weapon found ' .. k .. ' in thirsty? ' .. tostring(got)
     break if got
 
   unless got
@@ -123,7 +123,7 @@ mod.Path.Wrap 'StartNewRun', (fn, source, args) ->
        $debug_log 'StartNewRun: player is not using ' .. v
     return r
 
-  trait = GameState.WorldUpgrades.WorldUpgradesUnusedWeaponBonusT2 and 'UnusedWeaponBonusTraitT2' or 'UnusedWeaponBonusTrait'
+  trait = GameState.WorldUpgrades.WorldUpgradeUnusedWeaponBonusT2 and 'UnusedWeaponBonusTrait2' or 'UnusedWeaponBonusTrait'
   $debug_log 'StartNewRun: has trait ' .. trait .. '? ' .. tostring(HeroHasTrait(trait))
   unless HeroHasTrait trait
     AddTrait CurrentRun.Hero, trait
