@@ -2,7 +2,9 @@ import 'macros' as { $ }
 import lib.modutil.mod as mod
 import lib.incantations as incantations
 
-incant_id = 'gt-severe-thirst'
+_data =
+  incant_id: 'gt-severe-thirst'
+  weapons: {}
 
 langmap = (str) ->
   ks = ['en', 'de', 'el', 'es', 'fr', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'tr', 'uk', 'zh-CN', 'zh-TW']
@@ -12,7 +14,7 @@ langmap = (str) ->
 
 $debug_log 'adding incantation'
 incantations.addIncantation
-  Id: incant_id
+  Id: _data.incant_id
   Name: langmap 'Thirst of a Witch'
   Description: langmap '{#Emph}Enchant each of the Nocturnal Arms{#Prev}, causing them to suffer from Grave Thirst each night.'
   FlavorText: langmap 'Try as you might, you cannot quench their thirst.'
@@ -48,27 +50,85 @@ incantations.addIncantation
       * { GlobalVoiceLines: 'CauldronReactionFollowUpVoiceLines' }
 $debug_log 'incantation added'
 
+make_thirsty = ->
+  $debug_log 'make_thirsty: enter'
+
+  thirsty = {}
+  weps = GetEligibleMeleeWeapons!
+
+  nweps = config.num_weapons
+  if nweps == 0
+    nweps = 6
+
+  count = math.min #weps, nweps
+  for i = 1, count
+    idx = math.random 1, #weps
+    thirsty[] = weps[idx].Name
+    $debug_log 'make_thirsty: chose ' .. weps[idx].Name
+    table.remove weps, idx
+
+  thirsty
+
+-- we're in a hub if `CurrentHubRoom` exists.
+mod.Path.Wrap 'DeathAreaRoomTransition', (fn, source, args) ->
+  $debug_log 'DeathAreaRoomTransition: enter'
+  r = fn source, args
+
+  unless incantations.isIncantationEnabled _data.incant_id
+    $debug_log 'DeathAreaRoomTransition: incantation not enabled'
+    return r
+
+  unless CurrentHubRoom
+    $debug_log 'DeathAreaRoomTransition: CurrentHubRoom not defined'
+    return r
+
+  unless #_data.weapons > 0
+    $debug_log 'DeathAreaRoomTransition: make_thirsty for ' .. tostring(config.num_weapons)
+    _data.weapons = make_thirsty!
+
+  $debug_log 'DeathAreaRoomTransition: exit'
+  r
+
 -- IsBonusUnusedWeapon checks if you're using a weapon with thirst enabled.
-mod.Path.Wrap 'IsBonusUnusedWeapon', (base, source, args) ->
-  unless incantations.isIncantationEnabled incant_id
-    $debug_log 'IsBonusUnusedWeapon called, but incantation not enabled'
-    return base source, args -- yuecheck:ignore
+mod.Path.Wrap 'IsBonusUnusedWeapon', (fn, weapon) ->
+  $debug_log 'IsBonusUnusedWeapon: enter'
+  unless incantations.isIncantationEnabled _data.incant_id
+    $debug_log 'IsBonusUnusedWeapon: incantation not enabled'
+    return fn weapon
 
-  $debug_log 'IsBonusUnusedWeapon called, gt-severe-thirst enabled, ret true'
-  true
+  unless #_data.weapons > 0
+    $debug_log 'IsBonusUnusedWeapon: forcing thirsty generation'
+    _data.weapons = make_thirsty!
 
-mod.Path.Wrap 'StartNewRun', (base, source, args) ->
+  ok = weapon in _data.weapons
+  $debug_log 'IsBonusUnusedWeapon: ' .. weapon .. ' = ' .. tostring(ok)
+  ok
+
+mod.Path.Wrap 'StartNewRun', (fn, source, args) ->
   $debug_log 'StartNewRun: enter'
-  r = base source, args -- yuecheck:ignore
+  r = fn source, args
 
-  unless incantations.isIncantationEnabled incant_id
+  unless incantations.isIncantationEnabled _data.incant_id
     $debug_log 'StartNewRun: incantation not enabled'
     return r
 
-  $debug_log 'StartNewRun: incantation enabled'
+  got = false
+  for k, _ in pairs CurrentRun.Hero.Weapons
+    got = k in _data.weapons
+    $debug_log 'found ' .. k .. ' in thirsty? ' .. tostring(got)
+    break if got
+
+  unless got
+    for v in *_data.weapons
+       $debug_log 'StartNewRun: player is not using ' .. v
+    return r
+
   trait = GameState.WorldUpgrades.WorldUpgradesUnusedWeaponBonusT2 and 'UnusedWeaponBonusTraitT2' or 'UnusedWeaponBonusTrait'
   $debug_log 'StartNewRun: has trait ' .. trait .. '? ' .. tostring(HeroHasTrait(trait))
   unless HeroHasTrait trait
     AddTrait CurrentRun.Hero, trait
     $debug_log 'StartNewRun: added trait'
+
+  -- reset live_data for next hub
+  _data.weapons = {}
   r

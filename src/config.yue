@@ -1,4 +1,6 @@
 export default {
   version: 0
   enabled: true
+  -- 0 == all
+  num_weapons: 0
 }
